@@ -143,3 +143,7 @@ setopt hist_verify
 
 bindkey '^[[A' history-search-backward
 bindkey '^[[B' history-search-forward
+
+
+eval "$(direnv hook zsh)"
+export PATH=$PATH:$(go env GOPATH)/bin

@@ -6,6 +6,94 @@ local config = wezterm.config_builder()
 
 local projects = require("projects")
 
+-- Process Icons
+local process_icons = {
+	["bash"] = "󰣇",
+	["fish"] = "",
+	["zsh"] = "󰣇",
+	["nvim"] = "",
+	["vim"] = "",
+	["node"] = "",
+	["python"] = "",
+	["python3"] = "",
+	["git"] = "",
+	["lazygit"] = "",
+	["cargo"] = "",
+	["go"] = "",
+	["docker"] = "",
+	["docker-compose"] = "",
+	["npm"] = "",
+	["pnpm"] = "",
+	["yarn"] = "",
+	["ruby"] = "",
+	["rails"] = "",
+}
+
+-- Function to get process name
+local function get_process_name(tab)
+	if tab.active_pane then
+		local process = tab.active_pane.foreground_process_name
+		if process then
+			return string.match(process, "[^/\\]+$")
+		end
+	end
+	return nil
+end
+
+-- Function to get project name
+local function get_project_name(tab)
+	if tab.active_pane then
+		local cwd = tab.active_pane.current_working_dir
+		if cwd then
+			local path = cwd
+			if type(cwd) == "userdata" then
+				path = cwd.file_path
+			end
+			return string.match(path, "[/\\]([^/\\]+)$") or "terminal"
+		end
+	end
+	return "terminal"
+end
+
+-- Function to get process icon
+local function get_process_icon(tab)
+	local process_name = get_process_name(tab)
+	if process_name then
+		process_name = string.match(process_name, "([^%.]+)") or process_name
+		return process_icons[string.lower(process_name)] or "󰣇"
+	end
+	return "󰣇"
+end
+
+-- Tab formatting
+wezterm.on("format-tab-title", function(tab, tabs, panes, config, hover, max_width)
+	local icon = get_process_icon(tab)
+	local project = get_project_name(tab)
+
+	local pane_count = ""
+	if #tab.panes > 1 then
+		pane_count = string.format(" [%d]", #tab.panes)
+	end
+
+	local zoom_indicator = ""
+	if tab.active_pane.is_zoomed then
+		zoom_indicator = " 🔍"
+	end
+
+	local title = string.format("%s %s%s%s", icon, project, pane_count, zoom_indicator)
+
+	if tab.is_active then
+		return {
+			{ Background = { Color = "#3012a1" } },
+			{ Text = " " .. title .. " " },
+		}
+	else
+		return {
+			{ Text = " " .. title .. " " },
+		}
+	end
+end)
+
 -- This is where the config will go
 
 config.color_scheme = "Tokyo Night"
